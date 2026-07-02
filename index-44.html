@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أثر — كبسولتك الزمنية</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Amiri:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&display=swap');
+  :root{
+    --ink:#1c1410;--paper:#f3ead9;--paper-dark:#e6d9bf;
+    --clay:#b5562f;--moss:#5a6b4f;--gold:#a3823f;--line:rgba(28,20,16,0.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);color:var(--ink);font-family:'Tajawal',sans-serif;
+    min-height:100vh;
+    background-image:radial-gradient(circle at 20% 20%,rgba(165,130,63,.07),transparent 40%),
+      radial-gradient(circle at 80% 70%,rgba(90,107,79,.07),transparent 40%);
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:28px 20px 60px;}
+
+  /* ── شاشة تسجيل الدخول ── */
+  .auth-screen{
+    position:fixed;inset:0;background:var(--paper);z-index:200;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    background-image:radial-gradient(circle at 20% 20%,rgba(165,130,63,.07),transparent 40%),
+      radial-gradient(circle at 80% 70%,rgba(90,107,79,.07),transparent 40%);
+  }
+  .auth-screen.hidden{display:none;}
+  .auth-box{
+    max-width:360px;width:100%;text-align:center;
+    background:var(--paper-dark);border:1px solid var(--line);
+    padding:40px 28px 32px;border-radius:2px;position:relative;
+  }
+  .auth-box::before{content:'';position:absolute;inset:6px;border:1px dashed rgba(28,20,16,.18);pointer-events:none;}
+  .auth-brand{font-family:'Amiri',serif;color:var(--gold);font-size:13px;margin-bottom:6px;letter-spacing:1px;}
+  .auth-seal{width:56px;height:56px;margin:0 auto 14px;border:2px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Amiri',serif;font-size:24px;background:var(--paper);}
+  .auth-box h2{font-family:'Amiri',serif;font-size:26px;margin-bottom:6px;}
+  .auth-tabs{display:flex;border:1.5px solid var(--line);border-radius:2px;margin:20px 0;overflow:hidden;}
+  .auth-tab{flex:1;padding:10px;font-family:'Tajawal';font-weight:700;font-size:13px;background:transparent;border:none;color:#8a7a64;cursor:pointer;}
+  .auth-tab.active{background:var(--ink);color:var(--paper);}
+  .auth-field{margin-bottom:16px;text-align:right;}
+  .auth-field label{display:block;font-size:12px;font-weight:700;color:#5a4d3e;margin-bottom:6px;}
+  .auth-field input{
+    width:100%;padding:10px 12px;font-family:'Tajawal';font-size:15px;
+    border:1.5px solid var(--line);border-radius:2px;background:var(--paper);
+    color:var(--ink);outline:none;
+  }
+  .auth-field input:focus{border-color:var(--clay);}
+  .auth-btn{
+    width:100%;padding:13px;background:var(--clay);color:var(--paper);
+    font-family:'Tajawal';font-weight:700;font-size:15px;
+    border:none;border-radius:2px;cursor:pointer;margin-top:4px;
+  }
+  .auth-btn:hover{background:#9a4626;}
+  .auth-error{color:var(--clay);font-size:12px;margin-top:10px;min-height:18px;font-weight:700;}
+  .auth-loading{color:var(--gold);font-size:13px;margin-top:10px;display:none;}
+
+  /* ── لغة ── */
+  .lang-toggle{position:absolute;top:0;left:0;display:flex;border:1.5px solid var(--ink);border-radius:20px;overflow:hidden;}
+  .lang-toggle button{width:auto;padding:5px 12px;background:transparent;color:var(--ink);border:none;font-family:'Tajawal';font-weight:700;font-size:12px;cursor:pointer;}
+  .lang-toggle button.active{background:var(--ink);color:var(--paper);}
+  .top-brand{position:absolute;top:0;right:0;font-family:'Amiri',serif;font-weight:700;font-size:14px;color:var(--gold);letter-spacing:1px;border:1px solid var(--gold);padding:5px 14px;border-radius:20px;background:var(--paper);}
+  header{text-align:center;margin-bottom:28px;position:relative;padding-top:36px;}
+  .seal{width:64px;height:64px;margin:0 auto 14px;border:2px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Amiri',serif;font-size:28px;background:var(--paper);}
+  h1{font-family:'Amiri',serif;font-weight:700;font-size:38px;letter-spacing:1px;}
+  .lang-en h1{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:2px;}
+  .tagline{font-size:14px;color:#6b5d4f;margin-top:6px;}
+
+  /* ── بار المستخدم ── */
+  .user-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--paper-dark);border:1px solid var(--line);
+    padding:10px 16px;border-radius:2px;margin-bottom:20px;font-size:13px;
+  }
+  .user-bar .email{color:#5a4d3e;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .logout-btn{
+    background:transparent;border:1px solid var(--line);color:#8a7a64;
+    padding:5px 12px;font-size:12px;font-family:'Tajawal';font-weight:700;
+    border-radius:20px;cursor:pointer;width:auto;flex-shrink:0;
+  }
+  .logout-btn:hover{background:var(--clay);color:var(--paper);border-color:var(--clay);}
+
+  /* ── إحصائيات ── */
+  .stats-bar{display:flex;gap:10px;margin-bottom:20px;}
+  .stat-card{flex:1;background:var(--paper-dark);border:1px solid var(--line);padding:14px 10px;border-radius:2px;text-align:center;}
+  .stat-num{font-family:'Amiri',serif;font-size:28px;font-weight:700;color:var(--clay);}
+  .stat-label{font-size:11px;color:#8a7a64;margin-top:4px;}
+
+  /* ── كارد ── */
+  .card{background:var(--paper-dark);border:1px solid var(--line);border-radius:2px;padding:24px;position:relative;}
+  .card::before{content:'';position:absolute;inset:6px;border:1px dashed rgba(28,20,16,.18);pointer-events:none;}
+  label{display:block;font-size:13px;font-weight:700;color:#5a4d3e;margin-bottom:8px;letter-spacing:.3px;}
+  textarea,input[type=date],input[type=text]{
+    width:100%;font-family:'Amiri',serif;font-size:17px;
+    background:transparent;border:none;border-bottom:1.5px solid var(--line);
+    padding:10px 4px;color:var(--ink);resize:vertical;outline:none;
+  }
+  textarea{min-height:120px;line-height:1.8;}
+  textarea:focus,input:focus{border-bottom-color:var(--clay);}
+  .field{margin-bottom:22px;}
+  .hint{font-size:12px;color:#8a7a64;margin-top:6px;}
+  button{width:100%;padding:15px;font-family:'Tajawal';font-weight:700;font-size:16px;background:var(--clay);color:var(--paper);border:none;border-radius:2px;cursor:pointer;letter-spacing:.5px;transition:transform .15s,background .2s;}
+  button:hover{background:#9a4626;}
+  button:active{transform:scale(.98);}
+
+  /* ── أدوات ── */
+  .tools-row{display:flex;gap:10px;margin-bottom:20px;}
+  .tool-btn{flex:1;padding:11px 6px;font-size:13px;font-weight:700;font-family:'Tajawal';border:1.5px solid var(--line);background:var(--paper-dark);color:var(--ink);border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .tool-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  /* ── قائمة ── */
+  .list{margin-top:8px;}
+  .list-title{font-size:13px;font-weight:700;color:#5a4d3e;margin-bottom:14px;}
+  .capsule{display:flex;align-items:center;padding:16px 18px;background:var(--paper-dark);border:1px solid var(--line);margin-bottom:10px;border-radius:2px;gap:10px;}
+  .capsule.locked{opacity:.85;}
+  .capsule .meta{font-family:'Amiri',serif;flex:1;min-width:0;cursor:pointer;}
+  .capsule .meta .name{font-size:16px;font-weight:700;}
+  .capsule .meta .date{font-size:12px;color:#8a7a64;margin-top:4px;}
+  .capsule .right-side{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .status{font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;letter-spacing:.3px;cursor:pointer;}
+  .status.locked{background:rgba(28,20,16,.08);color:#6b5d4f;}
+  .status.open{background:rgba(90,107,79,.15);color:var(--moss);}
+  .icon-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;}
+  .icon-btn.del{color:var(--clay);}
+  .icon-btn.del:hover{background:var(--clay);color:var(--paper);border-color:var(--clay);}
+  .icon-btn.share{color:var(--moss);}
+  .icon-btn.share:hover{background:var(--moss);color:var(--paper);border-color:var(--moss);}
+  .empty{text-align:center;padding:30px 10px;color:#8a7a64;font-size:14px;}
+  .loading-caps{text-align:center;padding:20px;color:var(--gold);font-size:14px;}
+
+  /* ── مودال ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(28,20,16,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--paper);max-width:440px;width:100%;padding:30px 26px;border-radius:2px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:85vh;overflow-y:auto;}
+  .modal h2{font-family:'Amiri',serif;font-size:22px;margin-bottom:14px;}
+  .modal p.body{font-family:'Amiri',serif;font-size:17px;line-height:1.9;white-space:pre-wrap;}
+  .modal .close{position:absolute;top:14px;left:14px;background:none;border:none;width:auto;padding:4px 10px;color:#8a7a64;font-size:22px;}
+  .lock-msg{text-align:center;padding:10px 0;}
+  .lock-msg .big{font-size:44px;margin-bottom:12px;}
+  .share-text{background:var(--paper-dark);border:1px solid var(--line);padding:16px;border-radius:2px;font-family:'Amiri',serif;font-size:16px;line-height:1.8;margin:14px 0;white-space:pre-wrap;user-select:all;}
+
+  footer{text-align:center;margin-top:40px;font-size:12px;color:#a3937a;}
+</style>
+</head>
+<body class="lang-ar">
+
+<!-- ══ شاشة تسجيل الدخول ══ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <div class="auth-brand">تبارك</div>
+    <div class="auth-seal">أ</div>
+    <h2 id="auth-title">أثر</h2>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')" data-ar="دخول" data-en="Login">دخول</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')" data-ar="حساب جديد" data-en="Sign Up">حساب جديد</button>
+    </div>
+
+    <div class="auth-field">
+      <label id="lbl-email" data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
+      <input type="email" id="authEmail" placeholder="example@email.com" dir="ltr">
+    </div>
+    <div class="auth-field">
+      <label id="lbl-pass" data-ar="كلمة المرور" data-en="Password">كلمة المرور</label>
+      <input type="password" id="authPass" placeholder="••••••••" dir="ltr" onkeydown="if(e.key==='Enter')doAuth()">
+    </div>
+    <div class="auth-field" id="confirmField" style="display:none">
+      <label id="lbl-confirm" data-ar="تأكيد كلمة المرور" data-en="Confirm Password">تأكيد كلمة المرور</label>
+      <input type="password" id="authConfirm" placeholder="••••••••" dir="ltr">
+    </div>
+
+    <button class="auth-btn" id="auth-btn" onclick="doAuth()">دخول</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-loading" id="authLoading">⏳ جاري التحقق...</div>
+  </div>
+</div>
+
+<!-- ══ الواجهة الرئيسية ══ -->
+<div class="wrap" id="mainWrap" style="display:none">
+
+  <div class="lang-toggle">
+    <button id="btnAr" onclick="setLang('ar')" class="active">ع</button>
+    <button id="btnEn" onclick="setLang('en')">EN</button>
+  </div>
+
+  <header>
+    <div class="top-brand" data-ar="تبارك" data-en="Tabarak">تبارك</div>
+    <div class="seal" data-ar="أ" data-en="A">أ</div>
+    <h1 data-ar="أثر" data-en="Athar">أثر</h1>
+    <div class="tagline" data-ar="اكتب لنفسك اليوم، اقرأها بعد سنين" data-en="Write to yourself today, read it years from now">اكتب لنفسك اليوم، اقرأها بعد سنين</div>
+  </header>
+
+  <!-- بار المستخدم -->
+  <div class="user-bar">
+    <span class="email" id="userEmail">—</span>
+    <button class="logout-btn" onclick="doLogout()" data-ar="خروج" data-en="Logout">خروج</button>
+  </div>
+
+  <!-- إحصائيات -->
+  <div class="stats-bar" id="statsBar"></div>
+
+  <!-- أدوات -->
+  <div class="tools-row">
+    <button class="tool-btn" onclick="exportData()">
+      <span>⬇</span><span data-ar="تصدير نسخة" data-en="Export">تصدير نسخة</span>
+    </button>
+    <button class="tool-btn" onclick="document.getElementById('importFile').click()">
+      <span>⬆</span><span data-ar="استيراد" data-en="Import">استيراد</span>
+    </button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+
+  <!-- كارد كبسولة جديدة -->
+  <div class="card">
+    <div class="field">
+      <label data-ar="اسم الكبسولة" data-en="Capsule name">اسم الكبسولة</label>
+      <input type="text" id="capName" data-ph-ar="رسالتي لنفسي" data-ph-en="A letter to myself" placeholder="رسالتي لنفسي">
+    </div>
+    <div class="field">
+      <label data-ar="اكتب ما يخصك" data-en="Write what's on your mind">اكتب ما يخصك</label>
+      <textarea id="capBody" data-ph-ar="إيش يدور في بالك الآن؟ أحلامك، مخاوفك، أو لحظة تبي تتذكرها..." data-ph-en="Your dreams, fears, or a moment you want to remember..." placeholder="إيش يدور في بالك الآن؟"></textarea>
+    </div>
+    <div class="field">
+      <label data-ar="صورة للتذكار (اختياري)" data-en="A photo (optional)">صورة للتذكار (اختياري)</label>
+      <input type="file" id="capImage" accept="image/*" onchange="previewImage(event)">
+      <img id="imgPreview" style="display:none;width:100%;margin-top:10px;border-radius:2px;border:1px solid var(--line);">
+    </div>
+    <div class="field">
+      <label data-ar="تُفتح في تاريخ" data-en="Opens on">تُفتح في تاريخ</label>
+      <input type="date" id="capDate">
+      <div class="hint" data-ar="لن تستطيع فتحها قبل هذا التاريخ" data-en="You won't be able to open it before this date">لن تستطيع فتحها قبل هذا التاريخ</div>
+    </div>
+    <button onclick="saveCapsule()" data-ar="دفن الكبسولة ⏳" data-en="Bury the capsule ⏳">دفن الكبسولة ⏳</button>
+  </div>
+
+  <div class="list" style="margin-top:28px">
+    <div class="list-title" data-ar="كبسولاتك" data-en="Your capsules">كبسولاتك</div>
+    <div id="capsuleList"><div class="loading-caps">⏳</div></div>
+  </div>
+
+  <footer data-ar="بياناتك محفوظة بأمان على السحابة" data-en="Your data is safely stored in the cloud">بياناتك محفوظة بأمان على السحابة</footer>
+</div>
+
+<!-- مودال الكبسولة -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="close" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- مودال المشاركة -->
+<div class="modal-overlay" id="shareOverlay">
+  <div class="modal">
+    <button class="close" onclick="closeShare()">×</button>
+    <div id="shareContent"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  /* ══════════════════════════════════════════
+     ⚠️  ضع هنا إعدادات Firebase الخاصة بك
+     من: Firebase Console → Project Settings → Your apps
+  ══════════════════════════════════════════ */
+  const firebaseConfig = {
+    apiKey:            "YOUR_API_KEY",
+    authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId:         "YOUR_PROJECT_ID",
+    storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId:             "YOUR_APP_ID"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  /* ══════ ترجمات ══════ */
+  const STR = {
+    ar:{
+      fillAll:'عبّي كل الحقول', opensIn:'تُفتح في', opensSince:'تُفتح منذ',
+      readyToOpen:'جاهزة للفتح', locked:'مقفلة',
+      empty:'ما عندك كبسولات بعد. اكتب أول واحدة فوق.',
+      delete:'حذف', writtenOn:'كُتبت في',
+      stillLockedTitle:'ارجع في', comeBackOn:'حتى تقدر تقرأها',
+      totalLabel:'إجمالي', openLabel:'جاهزة', lockedLabel:'مقفلة',
+      shareTitle:'شارك كبسولتك', shareCopy:'نسخ النص', shareCopied:'تم النسخ ✓',
+      shareMsg:(n,d)=>`⏳ دفنت كبسولة زمنية بعنوان "${n}" لن تُفتح قبل ${d}\n\nاحفظ ذكرياتك في أثر 🌿`,
+      exportName:'athar-backup.json', importSuccess:'تم الاستيراد ✓', importError:'ملف غير صالح',
+      locale:'ar-SA', loginBtn:'دخول', registerBtn:'إنشاء حساب',
+      passNoMatch:'كلمة المرور غير متطابقة',
+      saving:'جاري الحفظ...', loading:'جاري التحميل...',
+      logout:'خروج',
+      errWeak:'كلمة المرور ضعيفة (6 أحرف على الأقل)',
+      errEmail:'البريد الإلكتروني غير صحيح',
+      errWrong:'البريد أو كلمة المرور غلط',
+      errExists:'هذا البريد مسجّل مسبقاً',
+      errGeneral:'حدث خطأ، حاول مجدداً',
+    },
+    en:{
+      fillAll:'Fill in all fields', opensIn:'Opens on', opensSince:'Opened since',
+      readyToOpen:'Ready to open', locked:'Locked',
+      empty:'No capsules yet. Write your first one above.',
+      delete:'Delete', writtenOn:'Written on',
+      stillLockedTitle:'Come back on', comeBackOn:'to read it',
+      totalLabel:'Total', openLabel:'Ready', lockedLabel:'Locked',
+      shareTitle:'Share your capsule', shareCopy:'Copy text', shareCopied:'Copied ✓',
+      shareMsg:(n,d)=>`⏳ I buried a time capsule titled "${n}" — won't open until ${d}\n\nSave your memories on Athar 🌿`,
+      exportName:'athar-backup.json', importSuccess:'Imported ✓', importError:'Invalid file',
+      locale:'en-US', loginBtn:'Login', registerBtn:'Create account',
+      passNoMatch:'Passwords do not match',
+      saving:'Saving...', loading:'Loading...',
+      logout:'Logout',
+      errWeak:'Password too short (min 6 chars)',
+      errEmail:'Invalid email address',
+      errWrong:'Wrong email or password',
+      errExists:'Email already in use',
+      errGeneral:'An error occurred, try again',
+    }
+  };
+
+  let currentLang = localStorage.getItem('athar_lang') || 'ar';
+  let currentUser = null;
+  let currentTab  = 'login';
+
+  /* ══════ اللغة ══════ */
+  window.setLang = function(lang){
+    currentLang = lang;
+    localStorage.setItem('athar_lang', lang);
+    applyLang();
+    renderCapsules();
+    renderStats();
+  };
+
+  function applyLang(){
+    const html = document.getElementById('htmlRoot');
+    html.lang = currentLang; html.dir = currentLang==='ar'?'rtl':'ltr';
+    document.body.classList.toggle('lang-en', currentLang==='en');
+    document.getElementById('btnAr').classList.toggle('active', currentLang==='ar');
+    document.getElementById('btnEn').classList.toggle('active', currentLang==='en');
+    document.querySelectorAll('[data-ar][data-en]').forEach(el=>{
+      el.textContent = el.getAttribute('data-'+currentLang);
+    });
+    document.querySelectorAll('[data-ph-ar][data-ph-en]').forEach(el=>{
+      el.placeholder = el.getAttribute('data-ph-'+currentLang);
+    });
+    const s = STR[currentLang];
+    document.title = currentLang==='ar'?'أثر — كبسولتك الزمنية':'Athar — Your Time Capsule';
+    document.getElementById('auth-btn').textContent = currentTab==='login'?s.loginBtn:s.registerBtn;
+  }
+
+  /* ══════ تبويب الدخول/التسجيل ══════ */
+  window.switchTab = function(tab){
+    currentTab = tab;
+    const s = STR[currentLang];
+    document.getElementById('tab-login').classList.toggle('active', tab==='login');
+    document.getElementById('tab-register').classList.toggle('active', tab==='register');
+    document.getElementById('confirmField').style.display = tab==='register'?'block':'none';
+    document.getElementById('auth-btn').textContent = tab==='login'?s.loginBtn:s.registerBtn;
+    document.getElementById('authError').textContent='';
+  };
+
+  /* ══════ دخول / تسجيل ══════ */
+  window.doAuth = async function(){
+    const email   = document.getElementById('authEmail').value.trim();
+    const pass    = document.getElementById('authPass').value;
+    const confirm = document.getElementById('authConfirm').value;
+    const errEl   = document.getElementById('authError');
+    const loadEl  = document.getElementById('authLoading');
+    const s       = STR[currentLang];
+    errEl.textContent='';
+
+    if(currentTab==='register' && pass!==confirm){
+      errEl.textContent = s.passNoMatch; return;
+    }
+    loadEl.style.display='block';
+    document.getElementById('auth-btn').disabled=true;
+    try{
+      if(currentTab==='login'){
+        await signInWithEmailAndPassword(auth, email, pass);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, pass);
+      }
+    } catch(err){
+      const codes = {
+        'auth/weak-password': s.errWeak,
+        'auth/invalid-email': s.errEmail,
+        'auth/wrong-password': s.errWrong,
+        'auth/invalid-credential': s.errWrong,
+        'auth/user-not-found': s.errWrong,
+        'auth/email-already-in-use': s.errExists,
+      };
+      errEl.textContent = codes[err.code] || s.errGeneral;
+    } finally{
+      loadEl.style.display='none';
+      document.getElementById('auth-btn').disabled=false;
+    }
+  };
+
+  document.getElementById('authPass').addEventListener('keydown', e=>{
+    if(e.key==='Enter') window.doAuth();
+  });
+
+  /* ══════ خروج ══════ */
+  window.doLogout = async function(){
+    await signOut(auth);
+  };
+
+  /* ══════ Auth State ══════ */
+  onAuthStateChanged(auth, user=>{
+    currentUser = user;
+    if(user){
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('mainWrap').style.display='block';
+      document.getElementById('userEmail').textContent = user.email;
+      applyLang(); renderCapsules(); renderStats();
+    } else {
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('mainWrap').style.display='none';
+    }
+  });
+
+  /* ══════ Helpers ══════ */
+  function isUnlocked(d){ const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return t>=x; }
+  function formatDate(d){ return new Date(d).toLocaleDateString(STR[currentLang].locale,{year:'numeric',month:'long',day:'numeric'}); }
+  function escapeHtml(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+
+  /* ══════ Firestore: تحميل الكبسولات ══════ */
+  async function fetchCapsules(){
+    if(!currentUser) return [];
+    const q = query(collection(db,'capsules'), where('uid','==',currentUser.uid), orderBy('openDate','asc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d=>({id:d.id, ...d.data()}));
+  }
+
+  /* ══════ حفظ كبسولة ══════ */
+  let pendingImage = null;
+  window.previewImage = function(e){
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{ pendingImage=ev.target.result; const img=document.getElementById('imgPreview'); img.src=pendingImage; img.style.display='block'; };
+    reader.readAsDataURL(file);
+  };
+
+  window.saveCapsule = async function(){
+    const name=document.getElementById('capName').value.trim();
+    const body=document.getElementById('capBody').value.trim();
+    const date=document.getElementById('capDate').value;
+    if(!name||!body||!date){ alert(STR[currentLang].fillAll); return; }
+    const btn=document.querySelector('.card button');
+    btn.textContent=STR[currentLang].saving; btn.disabled=true;
+    try{
+      await addDoc(collection(db,'capsules'),{
+        uid:currentUser.uid, name, body, image:pendingImage||null,
+        openDate:date, createdAt:new Date().toISOString()
+      });
+      document.getElementById('capName').value='';
+      document.getElementById('capBody').value='';
+      document.getElementById('capDate').value='';
+      document.getElementById('capImage').value='';
+      document.getElementById('imgPreview').style.display='none';
+      pendingImage=null;
+      renderCapsules(); renderStats();
+    } finally{
+      btn.textContent=STR[currentLang][currentLang==='ar'?'fillAll':'fillAll'].includes('Fill')?'Bury the capsule ⏳':'دفن الكبسولة ⏳';
+      const s=STR[currentLang];
+      btn.textContent=currentLang==='ar'?'دفن الكبسولة ⏳':'Bury the capsule ⏳';
+      btn.disabled=false;
+    }
+  };
+
+  /* ══════ عرض الكبسولات ══════ */
+  async function renderCapsules(){
+    const el=document.getElementById('capsuleList');
+    el.innerHTML=`<div class="loading-caps">⏳</div>`;
+    const list=await fetchCapsules();
+    const s=STR[currentLang];
+    if(!list.length){ el.innerHTML=`<div class="empty">${s.empty}</div>`; return; }
+    el.innerHTML=list.map(c=>{
+      const u=isUnlocked(c.openDate);
+      return `
+        <div class="capsule ${u?'':'locked'}">
+          <div class="meta" onclick="openCapsule('${c.id}')">
+            <div class="name">${escapeHtml(c.name)}</div>
+            <div class="date">${u?s.opensSince:s.opensIn} ${formatDate(c.openDate)}</div>
+          </div>
+          <div class="right-side">
+            <div class="status ${u?'open':'locked'}" onclick="openCapsule('${c.id}')">${u?s.readyToOpen:s.locked}</div>
+            <button class="icon-btn share" onclick="event.stopPropagation();shareCapsule('${c.id}')">↗</button>
+            <button class="icon-btn del"   onclick="event.stopPropagation();deleteCapsule('${c.id}')">×</button>
+          </div>
+        </div>`;
+    }).join('');
+    window._capsuleCache = list;
+  }
+
+  /* ══════ إحصائيات ══════ */
+  async function renderStats(){
+    const list=await fetchCapsules();
+    const openCount=list.filter(c=>isUnlocked(c.openDate)).length;
+    const s=STR[currentLang];
+    document.getElementById('statsBar').innerHTML=`
+      <div class="stat-card"><div class="stat-num">${list.length}</div><div class="stat-label">${s.totalLabel}</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--moss)">${openCount}</div><div class="stat-label">${s.openLabel}</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--gold)">${list.length-openCount}</div><div class="stat-label">${s.lockedLabel}</div></div>`;
+  }
+
+  /* ══════ حذف ══════ */
+  window.deleteCapsule = async function(id){
+    await deleteDoc(doc(db,'capsules',id));
+    renderCapsules(); renderStats();
+  };
+
+  /* ══════ فتح ══════ */
+  window.openCapsule = function(id){
+    const list=window._capsuleCache||[];
+    const c=list.find(x=>x.id===id); if(!c) return;
+    const s=STR[currentLang];
+    const mc=document.getElementById('modalContent');
+    if(isUnlocked(c.openDate)){
+      mc.innerHTML=`
+        <h2>${escapeHtml(c.name)}</h2>
+        <div class="hint" style="margin-bottom:16px">${s.writtenOn} ${formatDate(c.createdAt)}</div>
+        ${c.image?`<img src="${c.image}" style="width:100%;border-radius:2px;margin-bottom:16px;border:1px solid var(--line);">`:''}
+        <p class="body">${escapeHtml(c.body)}</p>`;
+    } else {
+      mc.innerHTML=`
+        <div class="lock-msg">
+          <div class="big">⏳</div>
+          <h2>${s.stillLockedTitle} ${formatDate(c.openDate)}</h2>
+          <p style="margin-top:10px;color:#6b5d4f">${s.comeBackOn}</p>
+        </div>`;
+    }
+    document.getElementById('modalOverlay').classList.add('show');
+  };
+  window.closeModal=()=>document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target.id==='modalOverlay') closeModal(); });
+
+  /* ══════ مشاركة ══════ */
+  window.shareCapsule = function(id){
+    const c=(window._capsuleCache||[]).find(x=>x.id===id); if(!c) return;
+    const s=STR[currentLang];
+    const msg=s.shareMsg(c.name,formatDate(c.openDate));
+    document.getElementById('shareContent').innerHTML=`
+      <h2>${s.shareTitle}</h2>
+      <div class="share-text" id="shareMsg">${escapeHtml(msg)}</div>
+      <button onclick="copyShare()" id="copyBtn">${s.shareCopy}</button>`;
+    document.getElementById('shareOverlay').classList.add('show');
+  };
+  window.copyShare=function(){
+    navigator.clipboard.writeText(document.getElementById('shareMsg').textContent).then(()=>{
+      const btn=document.getElementById('copyBtn');
+      btn.textContent=STR[currentLang].shareCopied;
+      setTimeout(()=>btn.textContent=STR[currentLang].shareCopy,2000);
+    });
+  };
+  window.closeShare=()=>document.getElementById('shareOverlay').classList.remove('show');
+  document.getElementById('shareOverlay').addEventListener('click',e=>{ if(e.target.id==='shareOverlay') closeShare(); });
+
+  /* ══════ تصدير / استيراد ══════ */
+  window.exportData = async function(){
+    const list=await fetchCapsules();
+    const blob=new Blob([JSON.stringify(list,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=STR[currentLang].exportName; a.click();
+  };
+  window.importData = async function(e){
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      try{
+        const imported=JSON.parse(ev.target.result);
+        if(!Array.isArray(imported)) throw new Error();
+        for(const item of imported){
+          const {id,...data}=item;
+          await addDoc(collection(db,'capsules'),{...data,uid:currentUser.uid});
+        }
+        renderCapsules(); renderStats();
+        alert(STR[currentLang].importSuccess);
+      } catch{ alert(STR[currentLang].importError); }
+    };
+    reader.readAsText(file); e.target.value='';
+  };
+
+  applyLang();
+</script>
+</body>
+</html>
